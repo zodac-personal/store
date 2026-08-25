@@ -1,0 +1,176 @@
+name: Build and Publish Docker Image
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'src/**'
+      - 'Dockerfile'
+  workflow_dispatch:
+
+# Queue overlapping runs rather than let two version bumps race on the same push.
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # VERSION is the single source of truth; build.gradle reads it dynamically at build time.
+  version:
+    name: Read version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Read VERSION file
+        id: version
+        run: echo "version=$(cat VERSION)" >> "${GITHUB_OUTPUT}"
+
+  verify:
+    name: Lint, unit & integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up JDK 26
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '26'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Run lint (Spotless)
+        run: ./gradlew spotlessCheck
+
+      # Also runs jacocoTestReport (build.gradle wires it as finalizedBy on `test`).
+      - name: Run unit tests
+        run: ./gradlew test
+
+      # TODO: No integration tests yet
+      - name: Run integration tests
+        run: |
+          if ./gradlew tasks --all --console=plain | grep -qE '^integrationTest '; then
+            ./gradlew integrationTest
+          else
+            echo "::notice::No integrationTest task defined yet — skipping."
+          fi
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-report
+          path: build/reports/tests/test
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: jacoco-report
+          path: build/reports/jacoco/test
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # Builds the image from the existing Dockerfile and pushes it to GHCR
+  publish:
+    name: Build and publish Docker image
+    needs: [ version, verify ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # The raw "latest" tag is only applied when the ref being built is the repo's default
+      # branch, so a workflow_dispatch run from a feature branch still publishes a
+      # version-tagged image without ever moving `latest`.
+      - name: Compute image tags
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ needs.version.outputs.version }}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Summary
+        run: |
+          echo "Published:"
+          echo "${{ steps.meta.outputs.tags }}" | sed 's/^/  - /'
+
+  # Bumps the patch version for the next build. Only on master — a workflow_dispatch run from a
+  # feature branch still publishes above, but does not move the version forward.
+  bump-version:
+    name: Bump version for next build
+    needs: publish
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: master
+
+      - name: Configure git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump patch version
+        run: |
+          version="$(cat VERSION)"
+          IFS='.' read -r major minor patch <<< "${version}"
+          new_version="${major}.${minor}.$((patch + 1))"
+          echo "${new_version}" > VERSION
+          echo "Bumped VERSION: ${version} -> ${new_version}"
+
+      - name: Commit and push version bump
+        run: |
+          git add VERSION
+          git commit -m "Bump version to $(cat VERSION) [skip ci]"
+          git push origin HEAD:master
