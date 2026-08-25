@@ -4,7 +4,7 @@ FROM eclipse-temurin:26.0.2_10-jdk AS build
 
 WORKDIR /work
 
-COPY gradlew settings.gradle build.gradle ./
+COPY gradlew settings.gradle build.gradle VERSION ./
 COPY gradle gradle
 
 # Warms the dependency cache in its own layer, invalidated only by the files above.
