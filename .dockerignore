@@ -1,0 +1,9 @@
+.git
+.gradle
+.idea
+.claude
+build
+utils
+*.iml
+README.md
+LICENSE
