@@ -58,18 +58,12 @@ jobs:
       - name: Run lint (Spotless)
         run: ./gradlew spotlessCheck
 
-      # Also runs jacocoTestReport (build.gradle wires it as finalizedBy on `test`).
+      # Also runs jacocoTestReport (build.gradle wires it as finalizedBy on `test`)
       - name: Run unit tests
         run: ./gradlew test
 
-      # TODO: No integration tests yet
       - name: Run integration tests
-        run: |
-          if ./gradlew tasks --all --console=plain | grep -qE '^integrationTest '; then
-            ./gradlew integrationTest
-          else
-            echo "::notice::No integrationTest task defined yet — skipping."
-          fi
+        run: ./gradlew integrationTest
 
       - name: Upload test report
         if: always()
@@ -77,6 +71,15 @@ jobs:
         with:
           name: test-report
           path: build/reports/tests/test
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload integration test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: integration-test-report
+          path: build/reports/tests/integrationTest
           retention-days: 14
           if-no-files-found: ignore
 
@@ -172,5 +175,5 @@ jobs:
       - name: Commit and push version bump
         run: |
           git add VERSION
-          git commit -m "Bump version to $(cat VERSION) [skip ci]"
+          git commit -m "[skip ci] Bump version to $(cat VERSION)"
           git push origin HEAD:master

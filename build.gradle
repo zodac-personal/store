@@ -9,6 +9,7 @@ buildscript {
 
 plugins {
     id 'java'
+    id 'jvm-test-suite'
     id 'org.springframework.boot' version '4.1.1'
     id 'org.liquibase.gradle' version '3.1.0'
     id 'com.diffplug.spotless' version '8.10.0'
@@ -64,6 +65,34 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.46'
     testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+}
+
+testing {
+    suites {
+        integrationTest(JvmTestSuite) {
+            useJUnitJupiter()
+
+            dependencies {
+                implementation project()
+                implementation platform('org.springframework.boot:spring-boot-dependencies:4.1.1')
+                implementation 'org.springframework.boot:spring-boot-starter-test'
+                implementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+                implementation 'org.springframework.boot:spring-boot-restclient'
+                implementation 'org.springframework.boot:spring-boot-testcontainers'
+                implementation 'org.testcontainers:testcontainers-junit-jupiter'
+                implementation 'org.testcontainers:testcontainers-postgresql'
+            }
+
+            // Boots a real Testcontainers-backed context, so it's slower than the mocked unit tests.
+            targets {
+                all {
+                    testTask.configure {
+                        shouldRunAfter(tasks.test)
+                    }
+                }
+            }
+        }
+    }
 }
 
 tasks.named('test') {
