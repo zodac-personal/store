@@ -55,19 +55,15 @@ class StoreApplicationIntegrationTests {
     void getOrderById_returnsOrderWithItsCustomer_whenFound() {
         final ResponseEntity<OrderDTO> response = restTemplate.getForEntity("/order/1", OrderDTO.class);
 
-        assertThat(response.getStatusCode())
-            .isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody())
-            .isNotNull();
-        assertThat(response.getBody().getCustomer())
-            .isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCustomer()).isNotNull();
     }
 
     @Test
     void getOrderById_returnsNotFound_whenMissing() {
         final ResponseEntity<OrderDTO> response = restTemplate.getForEntity("/order/999999", OrderDTO.class);
 
-        assertThat(response.getStatusCode())
-            .isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

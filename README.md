@@ -18,6 +18,8 @@
 **Answer:** This has been implemented at [publish.yml](.github/workflows/publish.yml). It runs lints, unit tests and integration tests, then publishes
 a docker image to [GHCR](https://github.com/zodac-personal/store/pkgs/container/store).
 
+I have assumed all pushes will be directly to the **master** branch, and am not checking for any PRs.
+
 # Notes on the tasks
 Assume that the project represents a production application.
 Think carefully about the impact on performance when implementing your changes
@@ -30,6 +32,7 @@ Feel free to refactor the codebase if necessary. Bad choices were deliberately m
 - Refactoring: I re-packaged the application to be by domain/feature, rather than by layer
 - Error Handling: Might be a convention, but instead of the Controller returning 404, we could use a global exception handler?
 - DTOs: Using `Long` for the ID, perhaps would be better as a UUID?
+- Local dev: I would like a containerised script to run the lint/unit/IT checks as a githook before pushing, relying on host for now
 
 ----
 
