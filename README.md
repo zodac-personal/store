@@ -80,6 +80,7 @@ Others:
 - Might be a convention, but instead of the Controller returning 404, we could use a global exception handler?
 - Logging for requests, at API boundary and perhaps even DB layer, could use some traceability
 - DTOs are using `Long` for the ID, perhaps would be better as a UUID?
+- Better way instead of OrderCustomerDTO/CustomerOrderDTO?
 - Local dev, I would like a containerised script to run the lint/unit/IT checks as a githook before pushing, relying on host for now
 - Expose the OpenAPI.yaml through the UI?
 - Javadoc missing from public methods, should be some more comments/docs
@@ -87,8 +88,6 @@ Others:
 ----
 
 # Original
-
-----
 
 # Store Application
 The Store application keeps track of customers and orders in a database.
