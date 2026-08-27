@@ -16,6 +16,7 @@
 
 - No index on the DB tables for foreign key, added one for order::customer_id
 - Introduced pagination (optional, so the API remains backwards compatible)
+- Enabled gzip compression for responses
 
 > Add a new endpoint /products to model products which appear in an order:
 >    * A single order contains 1 or more products.
