@@ -1,7 +1,7 @@
 package com.example.store;
 
-import com.example.store.dto.CustomerDTO;
-import com.example.store.dto.OrderDTO;
+import com.example.store.customer.CustomerDTO;
+import com.example.store.order.OrderDTO;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

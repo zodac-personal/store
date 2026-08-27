@@ -24,6 +24,9 @@ The specifications of the tasks have been left deliberately vague. You will be r
 There's no CI pipeline associated with this project, but in reality there would be. Consider the things that you would expect that pipeline to verify before allowing your code to be promoted
 Feel free to refactor the codebase if necessary. Bad choices were deliberately made when creating this project.
 
+**Answer:**
+
+- Refactoring: I re-packaged the application to be by domain/feature, rather than by layer
 
 ----
 

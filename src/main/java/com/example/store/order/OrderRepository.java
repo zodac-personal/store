@@ -1,6 +1,4 @@
-package com.example.store.repository;
-
-import com.example.store.entity.Order;
+package com.example.store.order;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

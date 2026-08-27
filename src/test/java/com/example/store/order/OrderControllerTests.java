@@ -1,10 +1,7 @@
-package com.example.store.controller;
+package com.example.store.order;
 
-import com.example.store.entity.Customer;
-import com.example.store.entity.Order;
-import com.example.store.mapper.CustomerMapper;
-import com.example.store.repository.CustomerRepository;
-import com.example.store.repository.OrderRepository;
+import com.example.store.customer.Customer;
+import com.example.store.customer.CustomerRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(OrderController.class)
-@ComponentScan(basePackageClasses = CustomerMapper.class)
+@ComponentScan(basePackageClasses = OrderMapper.class)
 @RequiredArgsConstructor
 class OrderControllerTests {
 
