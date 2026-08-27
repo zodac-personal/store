@@ -57,14 +57,9 @@ class OrderControllerTests {
         order.setId(1L);
         order.setCustomer(customer);
 
-        final OrderCustomerDTO orderCustomerDTO = new OrderCustomerDTO();
-        orderCustomerDTO.setId(1L);
-        orderCustomerDTO.setName("John Doe");
+        final OrderCustomerDTO orderCustomerDTO = new OrderCustomerDTO(1L, "John Doe");
 
-        orderDTO = new OrderDTO();
-        orderDTO.setId(1L);
-        orderDTO.setDescription("Test Order");
-        orderDTO.setCustomer(orderCustomerDTO);
+        orderDTO = new OrderDTO(1L, "Test Order", orderCustomerDTO);
     }
 
     @Test

@@ -20,8 +20,8 @@ class CustomerMapperTests {
 
         final CustomerDTO customerDTO = customerMapper.customerToCustomerDTO(customer);
 
-        assertThat(customerDTO.getId()).isEqualTo(1L);
-        assertThat(customerDTO.getName()).isEqualTo("John Doe");
+        assertThat(customerDTO.id()).isEqualTo(1L);
+        assertThat(customerDTO.name()).isEqualTo("John Doe");
     }
 
     @Test
@@ -37,9 +37,9 @@ class CustomerMapperTests {
 
         final CustomerDTO customerDTO = customerMapper.customerToCustomerDTO(customer);
 
-        assertThat(customerDTO.getOrders()).hasSize(1);
-        assertThat(customerDTO.getOrders().getFirst().getId()).isEqualTo(5L);
-        assertThat(customerDTO.getOrders().getFirst().getDescription()).isEqualTo("Chair");
+        assertThat(customerDTO.orders()).hasSize(1);
+        assertThat(customerDTO.orders().getFirst().id()).isEqualTo(5L);
+        assertThat(customerDTO.orders().getFirst().description()).isEqualTo("Chair");
     }
 
     @Test
@@ -51,6 +51,6 @@ class CustomerMapperTests {
 
         final List<CustomerDTO> customerDTOs = customerMapper.customersToCustomerDTOs(List.of(first, second));
 
-        assertThat(customerDTOs).extracting(CustomerDTO::getId).containsExactly(1L, 2L);
+        assertThat(customerDTOs).extracting(CustomerDTO::id).containsExactly(1L, 2L);
     }
 }

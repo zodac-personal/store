@@ -35,8 +35,7 @@ class CustomerServiceTests {
     void getAllCustomers_returnsAllCustomers_whenNameIsBlank() {
         final Customer customer = new Customer();
         customer.setId(1L);
-        final CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO.setId(1L);
+        final CustomerDTO customerDTO = new CustomerDTO(1L, null, null);
 
         when(customerRepository.findAll()).thenReturn(List.of(customer));
         when(customerMapper.customersToCustomerDTOs(List.of(customer))).thenReturn(List.of(customerDTO));
@@ -50,8 +49,7 @@ class CustomerServiceTests {
     void getAllCustomers_filtersByName_whenNameIsProvided() {
         final Customer customer = new Customer();
         customer.setId(1L);
-        final CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO.setId(1L);
+        final CustomerDTO customerDTO = new CustomerDTO(1L, null, null);
 
         when(customerRepository.findByNamePartialMatch("john")).thenReturn(List.of(customer));
         when(customerMapper.customersToCustomerDTOs(List.of(customer))).thenReturn(List.of(customerDTO));
@@ -65,8 +63,7 @@ class CustomerServiceTests {
     void getAllCustomersPaginated_returnsAllCustomers_whenNameIsBlank() {
         final Customer customer = new Customer();
         customer.setId(1L);
-        final CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO.setId(1L);
+        final CustomerDTO customerDTO = new CustomerDTO(1L, null, null);
         final Pageable pageable = PageRequest.of(0, 20);
         final Page<Customer> customerPage = new PageImpl<>(List.of(customer), pageable, 1);
 
@@ -82,8 +79,7 @@ class CustomerServiceTests {
     void getAllCustomersPaginated_filtersByName_whenNameIsProvided() {
         final Customer customer = new Customer();
         customer.setId(1L);
-        final CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO.setId(1L);
+        final CustomerDTO customerDTO = new CustomerDTO(1L, null, null);
         final Pageable pageable = PageRequest.of(0, 20);
         final Page<Customer> customerPage = new PageImpl<>(List.of(customer), pageable, 1);
 
@@ -102,9 +98,7 @@ class CustomerServiceTests {
         final Customer savedCustomer = new Customer();
         savedCustomer.setId(1L);
         savedCustomer.setName("John Doe");
-        final CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO.setId(1L);
-        customerDTO.setName("John Doe");
+        final CustomerDTO customerDTO = new CustomerDTO(1L, "John Doe", null);
 
         when(customerRepository.save(customer)).thenReturn(savedCustomer);
         when(customerMapper.customerToCustomerDTO(savedCustomer)).thenReturn(customerDTO);

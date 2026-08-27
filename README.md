@@ -84,6 +84,7 @@ Others:
 - Local dev, I would like a containerised script to run the lint/unit/IT checks as a githook before pushing, relying on host for now
 - Expose the OpenAPI.yaml through the UI?
 - Javadoc missing from public methods, should be some more comments/docs
+- No UI/landing page or error pages, only pure API
 
 ----
 

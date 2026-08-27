@@ -39,8 +39,7 @@ class OrderServiceTests {
     void getAllOrders_returnsMappedOrders() {
         final Order order = new Order();
         order.setId(1L);
-        final OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setId(1L);
+        final OrderDTO orderDTO = new OrderDTO(1L, null, null);
 
         when(orderRepository.findAll()).thenReturn(List.of(order));
         when(orderMapper.ordersToOrderDTOs(List.of(order))).thenReturn(List.of(orderDTO));
@@ -54,8 +53,7 @@ class OrderServiceTests {
     void getAllOrdersPaginated_returnsMappedPage() {
         final Order order = new Order();
         order.setId(1L);
-        final OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setId(1L);
+        final OrderDTO orderDTO = new OrderDTO(1L, null, null);
         final Pageable pageable = PageRequest.of(0, 20);
         final Page<Order> orderPage = new PageImpl<>(List.of(order), pageable, 1);
 
@@ -71,8 +69,7 @@ class OrderServiceTests {
     void getOrderById_returnsMappedOrder_whenFound() {
         final Order order = new Order();
         order.setId(1L);
-        final OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setId(1L);
+        final OrderDTO orderDTO = new OrderDTO(1L, null, null);
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(orderMapper.orderToOrderDTO(order)).thenReturn(orderDTO);
@@ -98,9 +95,7 @@ class OrderServiceTests {
         final Order savedOrder = new Order();
         savedOrder.setId(1L);
         savedOrder.setDescription("Chair");
-        final OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setId(1L);
-        orderDTO.setDescription("Chair");
+        final OrderDTO orderDTO = new OrderDTO(1L, "Chair", null);
 
         when(orderRepository.save(order)).thenReturn(savedOrder);
         when(orderMapper.orderToOrderDTO(savedOrder)).thenReturn(orderDTO);

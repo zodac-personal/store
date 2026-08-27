@@ -20,8 +20,8 @@ class OrderMapperTests {
 
         final OrderDTO orderDTO = orderMapper.orderToOrderDTO(order);
 
-        assertThat(orderDTO.getId()).isEqualTo(1L);
-        assertThat(orderDTO.getDescription()).isEqualTo("Chair");
+        assertThat(orderDTO.id()).isEqualTo(1L);
+        assertThat(orderDTO.description()).isEqualTo("Chair");
     }
 
     @Test
@@ -37,8 +37,8 @@ class OrderMapperTests {
 
         final OrderDTO orderDTO = orderMapper.orderToOrderDTO(order);
 
-        assertThat(orderDTO.getCustomer().getId()).isEqualTo(2L);
-        assertThat(orderDTO.getCustomer().getName()).isEqualTo("John Doe");
+        assertThat(orderDTO.customer().id()).isEqualTo(2L);
+        assertThat(orderDTO.customer().name()).isEqualTo("John Doe");
     }
 
     @Test
@@ -50,6 +50,6 @@ class OrderMapperTests {
 
         final List<OrderDTO> orderDTOs = orderMapper.ordersToOrderDTOs(List.of(first, second));
 
-        assertThat(orderDTOs).extracting(OrderDTO::getId).containsExactly(1L, 2L);
+        assertThat(orderDTOs).extracting(OrderDTO::id).containsExactly(1L, 2L);
     }
 }

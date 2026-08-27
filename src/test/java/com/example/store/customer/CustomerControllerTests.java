@@ -49,10 +49,7 @@ class CustomerControllerTests {
         customer.setName("John Doe");
         customer.setId(1L);
 
-        customerDTO = new CustomerDTO();
-        customerDTO.setId(1L);
-        customerDTO.setName("John Doe");
-        customerDTO.setOrders(List.of());
+        customerDTO = new CustomerDTO(1L, "John Doe", List.of());
     }
 
     @Test

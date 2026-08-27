@@ -34,10 +34,7 @@ class StoreApplicationIntegrationTests {
         final ResponseEntity<CustomerDTO[]> response = restTemplate.getForEntity("/customer", CustomerDTO[].class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody())
-                .isNotNull()
-                .extracting(CustomerDTO::getName)
-                .contains("Muriel Donnelly");
+        assertThat(response.getBody()).isNotNull().extracting(CustomerDTO::name).contains("Muriel Donnelly");
     }
 
     @Test
@@ -48,7 +45,7 @@ class StoreApplicationIntegrationTests {
         assertThat(response.getBody())
                 .isNotNull()
                 .isNotEmpty()
-                .allSatisfy(order -> assertThat(order.getCustomer()).isNotNull());
+                .allSatisfy(order -> assertThat(order.customer()).isNotNull());
     }
 
     @Test
@@ -57,7 +54,7 @@ class StoreApplicationIntegrationTests {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getCustomer()).isNotNull();
+        assertThat(response.getBody().customer()).isNotNull();
     }
 
     @Test
@@ -68,7 +65,7 @@ class StoreApplicationIntegrationTests {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody())
                 .isNotNull()
-                .extracting(CustomerDTO::getName)
+                .extracting(CustomerDTO::name)
                 .contains("Muriel Donnelly")
                 .allSatisfy(name -> assertThat(name.toLowerCase()).contains("don"));
     }
@@ -79,10 +76,7 @@ class StoreApplicationIntegrationTests {
                 restTemplate.getForEntity("/customer?name=nell", CustomerDTO[].class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody())
-                .isNotNull()
-                .extracting(CustomerDTO::getName)
-                .contains("Muriel Donnelly");
+        assertThat(response.getBody()).isNotNull().extracting(CustomerDTO::name).contains("Muriel Donnelly");
     }
 
     @Test
