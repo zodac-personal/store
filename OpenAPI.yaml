@@ -39,10 +39,7 @@ paths:
                   $ref: '#/components/schemas/Order'
       operationId: getOrders
       description: >-
-        Get all orders. Omit both `page` and `size` to receive the full,
-        unpaged list (existing behaviour, kept for backwards compatibility).
-        Supplying either parameter switches to a bounded page and adds the
-        `X-Total-Count`/`X-Total-Pages` response headers.
+        Get all orders, optionally filtered by `name`. Omit both `page` and `size` to receive the full, unpaged list.
     post:
       summary: Create Order
       tags:
@@ -65,11 +62,11 @@ paths:
                 id:
                   type: integer
                   format: int64
-                descriptioon:
+                description:
                   type: string
   /order/{id}:
     get:
-      summary: Get Order By Id
+      summary: Get Order By ID
       tags:
         - store
       parameters:
@@ -102,8 +99,7 @@ paths:
           schema:
             type: string
           description: >-
-            Filter to customers with a word in their name containing this
-            substring (case-insensitive). Omit or leave blank for all customers.
+            Filters for customers that contain this substring in their name (case-insensitive). Omit or leave blank for all customers.
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/SizeParam'
       responses:
@@ -122,11 +118,7 @@ paths:
                   $ref: '#/components/schemas/Customer'
       operationId: getCustomers
       description: >-
-        Get all customers, optionally filtered by `name`. Omit both `page`
-        and `size` to receive the full, unpaged list (existing behaviour,
-        kept for backwards compatibility). Supplying either parameter
-        switches to a bounded page and adds the
-        `X-Total-Count`/`X-Total-Pages` response headers.
+        Get all customers, optionally filtered by `name`. Omit both `page` and `size` to receive the full, unpaged list.
     post:
       summary: Create Customer
       tags:
@@ -151,30 +143,32 @@ paths:
                   format: int64
                 name:
                   type: string
-  /products:
+  /product:
     get:
       summary: Get Products
       tags:
         - store
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
       responses:
         '200':
           description: OK
+          headers:
+            X-Total-Count:
+              $ref: '#/components/headers/XTotalCount'
+            X-Total-Pages:
+              $ref: '#/components/headers/XTotalPages'
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  description:
-                    type: string
-                  orders:
-                    type: array
-                    items:
-                      type: integer
-                      format: int64
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
       operationId: getProducts
-      description: Get all products
+      description: >-
+        Get all products (each containing a list of order IDs that container that product). Omit
+        both `page` and `size` to receive the full, unpaged list.
     post:
       summary: Create Product
       tags:
@@ -182,6 +176,10 @@ paths:
       responses:
         '201':
           description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
       operationId: createProduct
       description: Create a new product
       requestBody:
@@ -197,6 +195,30 @@ paths:
                   type: string
                   x-stoplight:
                     id: jbh0jzkonppv8
+  /product/{id}:
+    get:
+      summary: Get Product By Id
+      tags:
+        - store
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Not Found
+      operationId: getProductById
+      description: >-
+        Get a specific product by its ID (and a list of order IDs that container this product)
 components:
   parameters:
     PageParam:
@@ -208,8 +230,7 @@ components:
         format: int32
         minimum: 0
       description: >-
-        Zero-based page number, defaulting to 0. Providing this parameter
-        (with or without `size`) opts into paging.
+        Zero-based page number, defaulting to 0. Providing this parameter (with or without `size`) opts into paging.
     SizeParam:
       name: size
       in: query
@@ -271,6 +292,21 @@ components:
                 type: string
                 x-stoplight:
                   id: mq08x82g95zl9
+    Product:
+      title: Product
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        description:
+          type: string
+        orders:
+          type: array
+          description: IDs of the orders that contain this product
+          items:
+            type: integer
+            format: int64
 tags:
   - name: store
     description: store operations

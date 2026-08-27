@@ -34,6 +34,25 @@ Other considerations:
 
 **Answer:**
 
+- Taking the values from the pre-populated data for orders, such as below, I created [products.sql](src/main/resources/db/changelog/products.sql):
+```json
+{
+  "id": 1,
+  "name": "Muriel Donnelly",
+  "orders": [
+    {
+      "description": "Awesome Concrete Shirt",
+      "id": 158
+    }
+  ]
+}
+```
+- A new package `product` was created for the new feature, with the standard DTO/Mapper/Repository/Service/Controller
+- An order can have `1 or more` products, so a join table was also created
+    - Added a [ProductMapper](src/main/java/com/example/store/product/ProductMapper.java) to map associated Orders to IDs for the JSON response
+- Added GET `/`, GET `/{id}`, and POST endpoints
+    - Included pagination to match Order/Customer
+
 # Bonus points
 > Implement a CI pipeline on the platform of your choice to build the project and deliver it as a Dockerized image
 
