@@ -38,6 +38,10 @@ paths:
       responses:
         '201':
           description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
       operationId: createOrder
       description: Create a new order
       requestBody:
@@ -106,6 +110,10 @@ paths:
       responses:
         '201':
           description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
       operationId: createCustomer
       description: Create a new customer
       requestBody:

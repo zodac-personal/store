@@ -33,15 +33,15 @@ Feel free to refactor the codebase if necessary. Bad choices were deliberately m
 
 Fixed:
 - Refactoring: I re-packaged the application to be by domain/feature, rather than by layer
+- Marking API endpoints with 'consumes' and 'produces' definitions
 
 Others:
 - API path should include `/api/v1` for compatibility
 - Might be a convention, but instead of the Controller returning 404, we could use a global exception handler?
 - DTOs are using `Long` for the ID, perhaps would be better as a UUID?
 - Local dev, I would like a containerised script to run the lint/unit/IT checks as a githook before pushing, relying on host for now
-- Constructor injection?
-- @Consumes/@Produces
 - Expose the OpenAPI.yaml through the UI?
+- Javadoc missing from public methods, should be some more comments/docs
 
 ----
 
