@@ -17,7 +17,6 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// Real Postgres via Testcontainers, not mocks, so the actual Liquibase migrations run.
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestRestTemplate
@@ -50,5 +49,25 @@ class StoreApplicationIntegrationTests {
                 .isNotNull()
                 .isNotEmpty()
                 .allSatisfy(order -> assertThat(order.getCustomer()).isNotNull());
+    }
+
+    @Test
+    void getOrderById_returnsOrderWithItsCustomer_whenFound() {
+        final ResponseEntity<OrderDTO> response = restTemplate.getForEntity("/order/1", OrderDTO.class);
+
+        assertThat(response.getStatusCode())
+            .isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody())
+            .isNotNull();
+        assertThat(response.getBody().getCustomer())
+            .isNotNull();
+    }
+
+    @Test
+    void getOrderById_returnsNotFound_whenMissing() {
+        final ResponseEntity<OrderDTO> response = restTemplate.getForEntity("/order/999999", OrderDTO.class);
+
+        assertThat(response.getStatusCode())
+            .isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

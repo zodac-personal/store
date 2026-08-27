@@ -1,6 +1,7 @@
 # Tasks
 
 1. Extend the order endpoint to find a specific order, by ID
+   **Answer:** Implemented, added a simple `findById` method for the [OrderRepository](src/main/java/com/example/store/order/OrderRepository.java)
 2. Extend the customer endpoint to find customers based on a query string to match a substring of one of the words in their name
 3. Users have complained that in production the GET endpoints can get very slow. The database is unfortunately not co-located with the application server, and there's high latency between the two. Identify if there are any optimisations that can improve performance
 4. Add a new endpoint /products to model products which appear in an order:
@@ -27,6 +28,8 @@ Feel free to refactor the codebase if necessary. Bad choices were deliberately m
 **Answer:**
 
 - Refactoring: I re-packaged the application to be by domain/feature, rather than by layer
+- Error Handling: Might be a convention, but instead of the Controller returning 404, we could use a global exception handler?
+- DTOs: Using `Long` for the ID, perhaps would be better as a UUID?
 
 ----
 

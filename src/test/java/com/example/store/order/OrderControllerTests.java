@@ -77,4 +77,26 @@ class OrderControllerTests {
                 .andExpect(jsonPath("$..description").value("Test Order"))
                 .andExpect(jsonPath("$..customer.name").value("John Doe"));
     }
+
+    @Test
+    void testGetOrderById() throws Exception {
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+
+        mockMvc.perform(get("/order/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Test Order"))
+                .andExpect(jsonPath("$.customer.name").value("John Doe"));
+    }
+
+    @Test
+    void testGetOrderByIdMissingId() throws Exception {
+        when(orderRepository.findById(404L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/order/404")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testGetOrderByIdMalformed() throws Exception {
+        mockMvc.perform(get("/order/invalid")).andExpect(status().isBadRequest());
+    }
 }
