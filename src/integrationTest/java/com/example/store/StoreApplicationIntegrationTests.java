@@ -2,6 +2,7 @@ package com.example.store;
 
 import com.example.store.customer.CustomerDTO;
 import com.example.store.order.OrderDTO;
+import com.example.store.status.StatusResponse;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,5 +133,16 @@ class StoreApplicationIntegrationTests {
         assertThat(response.getBody()).isNotNull().hasSize(5);
         assertThat(response.getHeaders().getFirst("X-Total-Count")).isNotNull();
         assertThat(response.getHeaders().getFirst("X-Total-Pages")).isNotNull();
+    }
+
+    @Test
+    void getStatus_returnsUp_whenDatabaseReachable() {
+        final ResponseEntity<StatusResponse> response = restTemplate.getForEntity("/status", StatusResponse.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody())
+                .isNotNull()
+                .extracting(StatusResponse::status)
+                .isEqualTo("UP");
     }
 }

@@ -219,6 +219,28 @@ paths:
       operationId: getProductById
       description: >-
         Get a specific product by its ID (and a list of order IDs that container this product)
+  /status:
+    get:
+      summary: Get Status
+      tags:
+        - store
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+      operationId: getStatus
+      description: >-
+        Readiness probe: 200 with status UP when the database is reachable, 503 with status DOWN
+        otherwise. Used by the container HEALTHCHECK.
 components:
   parameters:
     PageParam:
@@ -307,6 +329,13 @@ components:
           items:
             type: integer
             format: int64
+    Status:
+      title: Status
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN]
 tags:
   - name: store
     description: store operations
