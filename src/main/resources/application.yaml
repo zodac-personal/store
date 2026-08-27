@@ -13,3 +13,8 @@ spring:
         default_batch_fetch_size: 10
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
+
+store:
+  paging:
+    default-size: 20
+    max-size: 100

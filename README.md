@@ -14,7 +14,8 @@
 
 **Answer:** I applied the following updates, both to improve efficiency and also to improve user-experience:
 
-- No index on the DB tables, add one for order::customer_id
+- No index on the DB tables for foreign key, added one for order::customer_id
+- Introduced pagination (optional, so the API remains backwards compatible)
 
 > Add a new endpoint /products to model products which appear in an order:
 >    * A single order contains 1 or more products.
@@ -48,6 +49,7 @@ Fixed:
 Others:
 - API path should include `/api/v1` for compatibility
 - Might be a convention, but instead of the Controller returning 404, we could use a global exception handler?
+- Logging for requests, at API boundary and perhaps even DB layer, could use some traceability
 - DTOs are using `Long` for the ID, perhaps would be better as a UUID?
 - Local dev, I would like a containerised script to run the lint/unit/IT checks as a githook before pushing, relying on host for now
 - Expose the OpenAPI.yaml through the UI?

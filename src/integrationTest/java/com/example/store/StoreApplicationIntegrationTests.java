@@ -100,4 +100,43 @@ class StoreApplicationIntegrationTests {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
+
+    @Test
+    void getAllCustomers_returnsFullUnpagedList_whenPageAndSizeOmitted() {
+        final ResponseEntity<CustomerDTO[]> response = restTemplate.getForEntity("/customer", CustomerDTO[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getHeaders().getFirst("X-Total-Count")).isNull();
+        assertThat(response.getBody()).isNotNull().hasSizeGreaterThan(20);
+    }
+
+    @Test
+    void getAllCustomers_returnsBoundedPageWithHeaders_whenPageAndSizeProvided() {
+        final ResponseEntity<CustomerDTO[]> response =
+                restTemplate.getForEntity("/customer?page=0&size=5", CustomerDTO[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull().hasSize(5);
+        assertThat(response.getHeaders().getFirst("X-Total-Count")).isNotNull();
+        assertThat(response.getHeaders().getFirst("X-Total-Pages")).isNotNull();
+    }
+
+    @Test
+    void getAllOrders_returnsFullUnpagedList_whenPageAndSizeOmitted() {
+        final ResponseEntity<OrderDTO[]> response = restTemplate.getForEntity("/order", OrderDTO[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getHeaders().getFirst("X-Total-Count")).isNull();
+        assertThat(response.getBody()).isNotNull().hasSizeGreaterThan(20);
+    }
+
+    @Test
+    void getAllOrders_returnsBoundedPageWithHeaders_whenPageAndSizeProvided() {
+        final ResponseEntity<OrderDTO[]> response = restTemplate.getForEntity("/order?page=0&size=5", OrderDTO[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull().hasSize(5);
+        assertThat(response.getHeaders().getFirst("X-Total-Count")).isNotNull();
+        assertThat(response.getHeaders().getFirst("X-Total-Pages")).isNotNull();
+    }
 }

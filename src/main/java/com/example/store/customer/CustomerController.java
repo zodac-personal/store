@@ -1,9 +1,14 @@
 package com.example.store.customer;
 
+import com.example.store.config.PageRequestResolver;
+
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,13 +26,29 @@ public class CustomerController {
 
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+    private final PageRequestResolver pageRequestResolver;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<CustomerDTO> getAllCustomers(@RequestParam(required = false) String name) {
-        final List<Customer> customers = (name == null || name.isBlank())
-                ? customerRepository.findAll()
-                : customerRepository.findByNamePartialMatch(name);
-        return customerMapper.customersToCustomerDTOs(customers);
+    public ResponseEntity<List<CustomerDTO>> getAllCustomers(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        final boolean blankName = name == null || name.isBlank();
+
+        if (page == null && size == null) {
+            final List<Customer> customers =
+                    blankName ? customerRepository.findAll() : customerRepository.findByNamePartialMatch(name);
+            return ResponseEntity.ok(customerMapper.customersToCustomerDTOs(customers));
+        }
+
+        final Pageable pageable = pageRequestResolver.resolve(page, size);
+        final Page<Customer> customerPage = blankName
+                ? customerRepository.findAll(pageable)
+                : customerRepository.findByNamePartialMatch(name, pageable);
+        return ResponseEntity.ok()
+                .header(PageRequestResolver.TOTAL_COUNT_HEADER, String.valueOf(customerPage.getTotalElements()))
+                .header(PageRequestResolver.TOTAL_PAGES_HEADER, String.valueOf(customerPage.getTotalPages()))
+                .body(customerMapper.customersToCustomerDTOs(customerPage.getContent()));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
