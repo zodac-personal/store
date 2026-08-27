@@ -1,3 +1,34 @@
+# Usage
+
+The application can be run using the provided [docker-compose.yml](./docker-compose.yml) file, using the following command:
+
+```bash
+docker compose down && docker compose up --build -d
+```
+
+The application has started when you can see the following message:
+
+> Tomcat started on port 8080 (http) with context path '/'
+
+You can use the following links to check the API endpoints.
+
+| API Endpoint                         | Link                                                |
+|--------------------------------------|-----------------------------------------------------|
+| Get All Orders                       | http://127.0.0.1:8888/order                         |
+| Get All Orders (paginated)           | http://127.0.0.1:8888/order?page=0&size=5           |
+| Get Order By ID                      | http://127.0.0.1:8888/order/1                       |
+|                                      |                                                     |
+| Get All Customers                    | http://127.0.0.1:8888/customer                      |
+| Get All Customers (paginated)        | http://127.0.0.1:8888/customer?page=0&size=5        |
+| Search Customers By Name             | http://127.0.0.1:8888/customer?name=don             |
+| Search Customers By Name (paginated) | http://127.0.0.1:8888/customer?name=m&page=0&size=5 |
+|                                      |                                                     |
+| Get All Products                     | http://127.0.0.1:8888/product                       |
+| Get All Products (paginated)         | http://127.0.0.1:8888/product?page=0&size=5         |
+| Get Product By ID                    | http://127.0.0.1:8888/product/1                     |
+|                                      |                                                     |
+| Get Status                           | http://127.0.0.1:8888/status                        |
+
 # Tasks
 
 > Extend the order endpoint to find a specific order, by ID 
@@ -14,15 +45,15 @@
 
 **Answer:** I applied the following updates, both to improve efficiency and also to improve user-experience:
 
-- No index on the DB tables for foreign key, added one for order::customer_id
+- There was no foreign key index on the DB tables, added one for `order::customer_id`
 - Introduced pagination (optional, so the API remains backwards compatible)
-- Enabled gzip compression for responses
+- Enabled gzip compression for server responses
 
 Other considerations:
 
-- A cache like redis/valkey could have been introduced to cache repeat requests, but since the issue indicates a DB issue, I didn't add this
-- ETags could have been added, but as above that's an optimisation for client -> server, but not server -> DB, so I also didn't add this 
-- Dunno how the mapper classes work, would investigate that further if I had time
+- ETags could have been added, but that's an optimisation for client -> server, but not server -> DB, so I didn't add this
+- A cache like redis/valkey could have been introduced to cache repeat requests, but without profiling (are repeat requests common? Is pagination sufficient?) I left this for now
+- Dunno how the mapper classes work, would investigate that further if I had time to see if there are unnecessary DB calls being made
 
 > Add a new endpoint /products to model products which appear in an order:
 >    * A single order contains 1 or more products.
@@ -47,8 +78,8 @@ Other considerations:
   ]
 }
 ```
-- A new package `product` was created for the new feature, with the standard DTO/Mapper/Repository/Service/Controller
-- An order can have `1 or more` products, so a join table was also created
+- A new package `product` was created for the new feature, with the standard DTO/Mapper/Repository/Service/Controller structure
+- An order can have "1 or more" products, so a join table was also created
     - Added a [ProductMapper](src/main/java/com/example/store/product/ProductMapper.java) to map associated Orders to IDs for the JSON response
 - Added GET `/`, GET `/{id}`, and POST endpoints
     - Included pagination to match Order/Customer
@@ -72,19 +103,25 @@ Fixed:
 
 - Refactoring: I re-packaged the application to be by domain/feature, rather than by layer
     - Added a *Service class for each feature to abstract business logic away from API/DB logic
+- Built a distroless, nonroot docker image. Using multiple stages to minimise size and attack surface
+    - Could have used an Alpine Linux image instead, but Debian is easier to `docker exec` into for me to debug, and the size difference was minimal (140 -> 130 MB)
+    - Alpine did have fewer vulnerabilities, but it requires some explicit image tuning to remove libs, but possible if security is more important than a complex Dockerfile
+    - The docker-compose.yml file is also updated to remove unnecessary privileges and the containers are in their own docker network
 - Marking API endpoints with 'consumes' and 'produces' definitions
 
 Others:
 
 - API path should include `/api/v1` for compatibility
-- Might be a convention, but instead of the Controller returning 404, we could use a global exception handler?
+- Might be a company convention, but instead of the Service returning 404, we could use a global exception handler?
 - Logging for requests, at API boundary and perhaps even DB layer, could use some traceability
 - DTOs are using `Long` for the ID, perhaps would be better as a UUID?
-- Better way instead of OrderCustomerDTO/CustomerOrderDTO?
+- Better way instead of OrderCustomerDTO/CustomerOrderDTO? And the Mapper classes
+- Other lints (PMD, CheckStyle, ErrorProne, etc.)
 - Local dev, I would like a containerised script to run the lint/unit/IT checks as a githook before pushing, relying on host for now
-- Expose the OpenAPI.yaml through the UI?
-- Javadoc missing from public methods, should be some more comments/docs
-- No UI/landing page or error pages, only pure API
+- Expose the OpenAPI.yaml?
+- Javadoc missing from public methods/classes, should be some more comments/docs
+- No UI/landing page or error pages, only JSON endpoints
+- Could have made a GitHub release on each publish.yml run, including a changelog
 
 ----
 

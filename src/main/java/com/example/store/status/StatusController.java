@@ -31,9 +31,9 @@ public class StatusController {
     }
 
     private boolean isDatabaseReachable() {
-        try (Connection connection = dataSource.getConnection()) {
+        try (final Connection connection = dataSource.getConnection()) {
             return connection.isValid(VALIDATION_TIMEOUT_SECONDS);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             return false;
         }
     }

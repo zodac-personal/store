@@ -1,36 +1,84 @@
-services:
-  postgres:
-    image: postgres:16.2
-    restart: always
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: store
-    command: postgres -c wal_level=logical
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d store"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+networks:
+  store-network:
+    name: store-network
+    driver: bridge
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "8888:8080"
+services:
+  store:
+    image: ghcr.io/zodac-personal/store:latest  # https://github.com/zodac-personal/store/pkgs/container/store
+    container_name: store
+    hostname: store
+    cap_drop:
+      - ALL
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "256M"
+          pids: 128
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/store
       SPRING_DATASOURCE_USERNAME: admin
       SPRING_DATASOURCE_PASSWORD: admin
-    depends_on:
-      postgres:
-        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - store-network
+    ports:
+      - "8888:8080"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+    user: "65532:65532"  # nonroot user
+
+  postgres:
+    image: postgres:16.2
+    command: postgres -c wal_level=logical
+    container_name: postgres
+    hostname: postgres
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+          pids: 256
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: store
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d store" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - store-network
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+      - /var/run/postgresql:uid=999,gid=999,mode=775  # Giving access to startup root execution
+    user: "999:999"  # postgres user
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
 volumes:
-  postgres-data:
+  postgres-data: { }
