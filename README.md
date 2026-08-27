@@ -1,21 +1,31 @@
 # Tasks
 
-1. Extend the order endpoint to find a specific order, by ID
-   **Answer:** Implemented, added a simple `findById` method for the [OrderRepository](src/main/java/com/example/store/order/OrderRepository.java)
-2. Extend the customer endpoint to find customers based on a query string to match a substring of one of the words in their name
-   **Answer:** Implemented, added `findByNamePartialMatch` method for the [CustomerRepository](src/main/java/com/example/store/customer/CustomerRepository.java), using a native SQL query with a 'LIKE' clause
-   **Consideration**: A `GIN` index (using the `pg_trgm` extension) could have improved the performance. But I've not used it much, so I introduced only a simple index on the `name` column
-3. Users have complained that in production the GET endpoints can get very slow. The database is unfortunately not co-located with the application server, and there's high latency between the two. Identify if there are any optimisations that can improve performance
-4. Add a new endpoint /products to model products which appear in an order:
-    * A single order contains 1 or more products.
-    * A product has an ID and a description.
-    * Add a POST endpoint to create a product
-    * Add a GET endpoint to return all products, and a specific product by ID
-        * In both cases, also return a list of the order IDs which contain those products
-    * Change the orders endpoint to return a list of products contained in the order
+> Extend the order endpoint to find a specific order, by ID 
+
+**Answer:** Implemented, added a simple `findById` method for the [OrderRepository](src/main/java/com/example/store/order/OrderRepository.java).
+
+> Extend the customer endpoint to find customers based on a query string to match a substring of one of the words in their name
+
+**Answer:** Implemented, added `findByNamePartialMatch` method for the [CustomerRepository](src/main/java/com/example/store/customer/CustomerRepository.java), using a native SQL query with a **LIKE** clause.
+
+**Consideration**: A `GIN` index (using the `pg_trgm` extension) could have improved the performance. But I've not used it much, so I introduced only a simple index on the `name` column.
+
+> Users have complained that in production the GET endpoints can get very slow. The database is unfortunately not co-located with the application server, and there's high latency between the two. Identify if there are any optimisations that can improve performance
+
+**Answer:**
+
+> Add a new endpoint /products to model products which appear in an order:
+>    * A single order contains 1 or more products.
+>    * A product has an ID and a description.
+>    * Add a POST endpoint to create a product
+>    * Add a GET endpoint to return all products, and a specific product by ID
+>        * In both cases, also return a list of the order IDs which contain those products
+>    * Change the orders endpoint to return a list of products contained in the order
+
+**Answer:**
 
 # Bonus points
-1. Implement a CI pipeline on the platform of your choice to build the project and deliver it as a Dockerized image
+> Implement a CI pipeline on the platform of your choice to build the project and deliver it as a Dockerized image
 
 **Answer:** This has been implemented at [publish.yml](.github/workflows/publish.yml). It runs lints, unit tests and integration tests, then publishes
 a docker image to [GHCR](https://github.com/zodac-personal/store/pkgs/container/store).
@@ -23,13 +33,11 @@ a docker image to [GHCR](https://github.com/zodac-personal/store/pkgs/container/
 I have assumed all pushes will be directly to the **master** branch, and am not checking for any PRs.
 
 # Notes on the tasks
-Assume that the project represents a production application.
+> Assume that the project represents a production application.
 Think carefully about the impact on performance when implementing your changes
 The specifications of the tasks have been left deliberately vague. You will be required to exercise judgement about what to deliver - in a real world environment, you would clarify these points in refinement, but since this is a project to be completed without interaction, feel free to make assumptions - but be prepared to defend them when asked.
 There's no CI pipeline associated with this project, but in reality there would be. Consider the things that you would expect that pipeline to verify before allowing your code to be promoted
 Feel free to refactor the codebase if necessary. Bad choices were deliberately made when creating this project.
-
-**Answer:**
 
 Fixed:
 - Refactoring: I re-packaged the application to be by domain/feature, rather than by layer
