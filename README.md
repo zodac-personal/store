@@ -12,7 +12,9 @@
 
 > Users have complained that in production the GET endpoints can get very slow. The database is unfortunately not co-located with the application server, and there's high latency between the two. Identify if there are any optimisations that can improve performance
 
-**Answer:**
+**Answer:** I applied the following updates, both to improve efficiency and also to improve user-experience:
+
+- No index on the DB tables, add one for order::customer_id
 
 > Add a new endpoint /products to model products which appear in an order:
 >    * A single order contains 1 or more products.

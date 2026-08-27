@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4-order-customer-id-index
+      author: developer@securitease.com
+      changes:
+        - sql:
+            sql: CREATE INDEX idx_order_customer_id ON "order" (customer_id);
