@@ -58,4 +58,32 @@ class CustomerControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$..name").value("John Doe"));
     }
+
+    @Test
+    void testGetCustomerByNameWithBlankQuery() throws Exception {
+        when(customerRepository.findAll()).thenReturn(List.of(customer));
+
+        mockMvc.perform(get("/customer").param("name", ""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$..name").value("John Doe"));
+    }
+
+    @Test
+    void testGetCustomerByNameWithValidQuery() throws Exception {
+        when(customerRepository.findByNamePartialMatch("john")).thenReturn(List.of(customer));
+
+        mockMvc.perform(get("/customer").param("name", "john"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$..name").value("John Doe"));
+    }
+
+    @Test
+    void testGetCustomerByNameWithInvalidQuery() throws Exception {
+        when(customerRepository.findByNamePartialMatch("zzz")).thenReturn(List.of());
+
+        mockMvc.perform(get("/customer").param("name", "zzz"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
 }

@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3-customer-name-index
+      author: developer@securitease.com
+      changes:
+        - sql:
+            sql: CREATE INDEX idx_customer_name ON customer (lower(name));

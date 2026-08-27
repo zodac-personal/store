@@ -79,6 +79,15 @@ paths:
       summary: Get Customers
       tags:
         - store
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: >-
+            Filter to customers with a word in their name containing this
+            substring (case-insensitive). Omit or leave blank for all customers.
       responses:
         '200':
           description: OK

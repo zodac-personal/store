@@ -61,6 +61,40 @@ class StoreApplicationIntegrationTests {
     }
 
     @Test
+    void getCustomers_matchesWordPrefix_whenNameQueryProvided() {
+        final ResponseEntity<CustomerDTO[]> response =
+                restTemplate.getForEntity("/customer?name=don", CustomerDTO[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody())
+                .isNotNull()
+                .extracting(CustomerDTO::getName)
+                .contains("Muriel Donnelly")
+                .allSatisfy(name -> assertThat(name.toLowerCase()).contains("don"));
+    }
+
+    @Test
+    void getCustomers_matchesMidWordSubstring_whenNameQueryProvided() {
+        final ResponseEntity<CustomerDTO[]> response =
+                restTemplate.getForEntity("/customer?name=nell", CustomerDTO[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody())
+                .isNotNull()
+                .extracting(CustomerDTO::getName)
+                .contains("Muriel Donnelly");
+    }
+
+    @Test
+    void getCustomers_returnsEmpty_whenNameQueryMatchesNoWord() {
+        final ResponseEntity<CustomerDTO[]> response =
+                restTemplate.getForEntity("/customer?name=zzqzz", CustomerDTO[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull().isEmpty();
+    }
+
+    @Test
     void getOrderById_returnsNotFound_whenMissing() {
         final ResponseEntity<OrderDTO> response = restTemplate.getForEntity("/order/999999", OrderDTO.class);
 

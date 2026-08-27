@@ -3,6 +3,8 @@
 1. Extend the order endpoint to find a specific order, by ID
    **Answer:** Implemented, added a simple `findById` method for the [OrderRepository](src/main/java/com/example/store/order/OrderRepository.java)
 2. Extend the customer endpoint to find customers based on a query string to match a substring of one of the words in their name
+   **Answer:** Implemented, added `findByNamePartialMatch` method for the [CustomerRepository](src/main/java/com/example/store/customer/CustomerRepository.java), using a native SQL query with a 'LIKE' clause
+   **Consideration**: A `GIN` index (using the `pg_trgm` extension) could have improved the performance. But I've not used it much, so I introduced only a simple index on the `name` column
 3. Users have complained that in production the GET endpoints can get very slow. The database is unfortunately not co-located with the application server, and there's high latency between the two. Identify if there are any optimisations that can improve performance
 4. Add a new endpoint /products to model products which appear in an order:
     * A single order contains 1 or more products.
@@ -29,10 +31,17 @@ Feel free to refactor the codebase if necessary. Bad choices were deliberately m
 
 **Answer:**
 
+Fixed:
 - Refactoring: I re-packaged the application to be by domain/feature, rather than by layer
-- Error Handling: Might be a convention, but instead of the Controller returning 404, we could use a global exception handler?
-- DTOs: Using `Long` for the ID, perhaps would be better as a UUID?
-- Local dev: I would like a containerised script to run the lint/unit/IT checks as a githook before pushing, relying on host for now
+
+Others:
+- API path should include `/api/v1` for compatibility
+- Might be a convention, but instead of the Controller returning 404, we could use a global exception handler?
+- DTOs are using `Long` for the ID, perhaps would be better as a UUID?
+- Local dev, I would like a containerised script to run the lint/unit/IT checks as a githook before pushing, relying on host for now
+- Constructor injection?
+- @Consumes/@Produces
+- Expose the OpenAPI.yaml through the UI?
 
 ----
 
