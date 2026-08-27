@@ -18,6 +18,12 @@
 - Introduced pagination (optional, so the API remains backwards compatible)
 - Enabled gzip compression for responses
 
+Other considerations:
+
+- A cache like redis/valkey could have been introduced to cache repeat requests, but since the issue indicates a DB issue, I didn't add this
+- ETags could have been added, but as above that's an optimisation for client -> server, but not server -> DB, so I also didn't add this 
+- Dunno how the mapper classes work, would investigate that further if I had time
+
 > Add a new endpoint /products to model products which appear in an order:
 >    * A single order contains 1 or more products.
 >    * A product has an ID and a description.
@@ -44,10 +50,13 @@ There's no CI pipeline associated with this project, but in reality there would 
 Feel free to refactor the codebase if necessary. Bad choices were deliberately made when creating this project.
 
 Fixed:
+
 - Refactoring: I re-packaged the application to be by domain/feature, rather than by layer
+    - Added a *Service class for each feature to abstract business logic away from API/DB logic
 - Marking API endpoints with 'consumes' and 'produces' definitions
 
 Others:
+
 - API path should include `/api/v1` for compatibility
 - Might be a convention, but instead of the Controller returning 404, we could use a global exception handler?
 - Logging for requests, at API boundary and perhaps even DB layer, could use some traceability
@@ -65,12 +74,10 @@ Others:
 # Store Application
 The Store application keeps track of customers and orders in a database.
 
-
 # Assumptions
 This README assumes you're using a posix environment. It's possible to run this on Windows as well:
 * Instead of `./gradlew` use `gradlew.bat`
 * The syntax for creating the Docker container is different. You could also install PostgreSQL on bare metal if you prefer
-
 
 # Prerequisites
 This service assumes the presence of a postgresql 16.2 database server running on localhost:5433 (note the non-standard port)

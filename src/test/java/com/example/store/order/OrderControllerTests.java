@@ -2,27 +2,24 @@ package com.example.store.order;
 
 import com.example.store.config.PageRequestResolver;
 import com.example.store.customer.Customer;
-import com.example.store.customer.CustomerRepository;
-
-import lombok.RequiredArgsConstructor;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
 import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -32,8 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OrderController.class)
-@ComponentScan(basePackageClasses = OrderMapper.class)
-@RequiredArgsConstructor
 class OrderControllerTests {
 
     @Autowired
@@ -43,20 +38,17 @@ class OrderControllerTests {
     private JsonMapper objectMapper;
 
     @MockitoBean
-    private OrderRepository orderRepository;
-
-    @MockitoBean
-    private CustomerRepository customerRepository;
+    private OrderService orderService;
 
     @MockitoBean
     private PageRequestResolver pageRequestResolver;
 
     private Order order;
-    private Customer customer;
+    private OrderDTO orderDTO;
 
     @BeforeEach
     void setUp() {
-        customer = new Customer();
+        final Customer customer = new Customer();
         customer.setName("John Doe");
         customer.setId(1L);
 
@@ -64,12 +56,20 @@ class OrderControllerTests {
         order.setDescription("Test Order");
         order.setId(1L);
         order.setCustomer(customer);
+
+        final OrderCustomerDTO orderCustomerDTO = new OrderCustomerDTO();
+        orderCustomerDTO.setId(1L);
+        orderCustomerDTO.setName("John Doe");
+
+        orderDTO = new OrderDTO();
+        orderDTO.setId(1L);
+        orderDTO.setDescription("Test Order");
+        orderDTO.setCustomer(orderCustomerDTO);
     }
 
     @Test
     void testCreateOrder() throws Exception {
-        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-        when(orderRepository.save(order)).thenReturn(order);
+        when(orderService.createOrder(order)).thenReturn(orderDTO);
 
         mockMvc.perform(post("/order")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -81,7 +81,7 @@ class OrderControllerTests {
 
     @Test
     void testGetOrder() throws Exception {
-        when(orderRepository.findAll()).thenReturn(List.of(order));
+        when(orderService.getAllOrders()).thenReturn(List.of(orderDTO));
 
         mockMvc.perform(get("/order"))
                 .andExpect(status().isOk())
@@ -91,7 +91,7 @@ class OrderControllerTests {
 
     @Test
     void testGetOrderById() throws Exception {
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderService.getOrderById(1L)).thenReturn(orderDTO);
 
         mockMvc.perform(get("/order/1"))
                 .andExpect(status().isOk())
@@ -101,7 +101,8 @@ class OrderControllerTests {
 
     @Test
     void testGetOrderByIdMissingId() throws Exception {
-        when(orderRepository.findById(404L)).thenReturn(Optional.empty());
+        when(orderService.getOrderById(404L))
+                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found: 404"));
 
         mockMvc.perform(get("/order/404")).andExpect(status().isNotFound());
     }
@@ -115,7 +116,7 @@ class OrderControllerTests {
     void testGetOrderPaginated() throws Exception {
         final Pageable pageable = PageRequest.of(0, 20, Sort.by("id"));
         when(pageRequestResolver.resolve(0, 20)).thenReturn(pageable);
-        when(orderRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(order), pageable, 1));
+        when(orderService.getAllOrders(pageable)).thenReturn(new PageImpl<>(List.of(orderDTO), pageable, 1));
 
         mockMvc.perform(get("/order").param("page", "0").param("size", "20"))
                 .andExpect(status().isOk())
