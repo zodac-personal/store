@@ -2,6 +2,8 @@ package com.example.store.customer;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
 
+    @Cacheable(cacheNames = "customers")
     @Transactional(readOnly = true)
     public List<CustomerDTO> getAllCustomers(String name) {
         final List<Customer> customers =
@@ -23,6 +26,7 @@ public class CustomerService {
         return customerMapper.customersToCustomerDTOs(customers);
     }
 
+    @Cacheable(cacheNames = "customers")
     @Transactional(readOnly = true)
     public Page<CustomerDTO> getAllCustomers(String name, Pageable pageable) {
         final Page<Customer> customerPage = isBlank(name)
@@ -31,6 +35,7 @@ public class CustomerService {
         return customerPage.map(customerMapper::customerToCustomerDTO);
     }
 
+    @CacheEvict(cacheNames = "customers", allEntries = true)
     @Transactional
     public CustomerDTO createCustomer(Customer customer) {
         return customerMapper.customerToCustomerDTO(customerRepository.save(customer));

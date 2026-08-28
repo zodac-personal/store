@@ -9,6 +9,12 @@ spring:
     url: jdbc:postgresql://localhost:5433/store
     username: admin
     password: admin
+  data:
+    redis:
+      host: cache
+      port: 6379
+      connect-timeout: 250ms
+      timeout: 250ms
   jpa:
     hibernate:
       ddl-auto: validate

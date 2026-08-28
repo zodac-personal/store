@@ -17,6 +17,22 @@ services:
       timeout: 5s
       retries: 10
 
+  cache:
+    image: valkey/valkey:9.1.1-alpine
+    container_name: cache
+    hostname: cache
+    environment:
+      VALKEY_EXTRA_FLAGS: "--save 60 1 --loglevel warning"
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 30s
+      test: [ "CMD", "valkey-cli", "ping" ]
+      timeout: 5s
+    volumes:
+      # Persistent volumes
+      - cache-data:/data
+
   app:
     build:
       context: .
@@ -28,9 +44,14 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/store
       SPRING_DATASOURCE_USERNAME: admin
       SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_DATA_REDIS_HOST: cache
+      SPRING_DATA_REDIS_PORT: 6379
     depends_on:
       postgres:
         condition: service_healthy
+      cache:
+        condition: service_healthy
 
 volumes:
-  postgres-data:
+  postgres-data: { }
+  cache-data: { }

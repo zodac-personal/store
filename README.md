@@ -48,11 +48,15 @@ You can use the following links to check the API endpoints.
 - There was no foreign key index on the DB tables, added one for `order::customer_id`
 - Introduced pagination (optional, so the API remains backwards compatible)
 - Enabled gzip compression for server responses
+- I added a cache to sit between the application and the DB, to avoid the latency issue, which caches the DB for the app
+   - I was unsure how to handle invalidation - I considered a global read/write lock, so as soon as any write occurred we'd invalidate the cache. Hard to make a judgement call without knowing the number of read vs write requests, so I kept it simple - cache invalidation only after a DB update
+   - The cache essentially stores all DB entries, meaning the memory usage is higher than you'd like for a normal 'request-based' cache. But since the issue raised was DB latency, I went with this option
+      - 10k orders is the largest table, which was fine to keep in memory. Could re-evaluate if the DB size grew by another order of magnitude or two
+   - I didn't scale the cache, but that could be an option if the application is read-heavy and needs more throughput
 
 Other considerations:
 
-- ETags could have been added, but that's an optimisation for client -> server, but not server -> DB, so I didn't add this
-- A cache like redis/valkey could have been introduced to cache repeat requests, but without profiling (are repeat requests common? Is pagination sufficient?) I left this for now
+- ETags could have been added, but that's an optimisation for client -> server, but not server -> DB, so I didn't add this since that wasn't raised as an issue
 - Dunno how the mapper classes work, would investigate that further if I had time to see if there are unnecessary DB calls being made
 
 > Add a new endpoint /products to model products which appear in an order:
@@ -89,6 +93,8 @@ Other considerations:
 
 **Answer:** This has been implemented at [publish.yml](.github/workflows/publish.yml). It runs lints, unit tests and integration tests, then publishes
 a docker image to [GHCR](https://github.com/zodac-personal/store/pkgs/container/store).
+
+There is also a githook for 'pre-commit' to ensure the `gradle build` executes before a user pushes to GitHub.
 
 I have assumed all pushes will be directly to the **master** branch, and am not checking for any PRs.
 
