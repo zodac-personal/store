@@ -8,8 +8,23 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
+
+    interface CustomerOrderStats {
+        String getName();
+
+        long getTotalOrders();
+    }
+
+    @Query("""
+            SELECT cust.name AS name, COUNT(ord) AS totalOrders
+            FROM Customer cust LEFT JOIN cust.orders ord
+            WHERE cust.id = :customerId
+            GROUP BY cust.name
+        """)
+    Optional<CustomerOrderStats> findOrderStatsByCustomerId(@Param("customerId") Long customerId);
 
     @Query(nativeQuery = true, value = """
             SELECT *

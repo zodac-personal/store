@@ -1,13 +1,17 @@
 package com.example.store.customer;
 
+import com.example.store.order.OrderRepository;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -17,6 +21,7 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+    private final OrderRepository orderRepository;
 
     @Cacheable(cacheNames = "customers")
     @Transactional(readOnly = true)
@@ -33,6 +38,16 @@ public class CustomerService {
                 ? customerRepository.findAll(pageable)
                 : customerRepository.findByNamePartialMatch(name, pageable);
         return customerPage.map(customerMapper::customerToCustomerDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerDetailsDTO getCustomerDetails(Long customerId, Pageable pageable) {
+        final CustomerRepository.CustomerOrderStats stats = customerRepository
+                .findOrderStatsByCustomerId(customerId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found: " + customerId));
+        final List<CustomerOrderDTO> orders = orderRepository.findCustomerOrderDTOByCustomerId(customerId, pageable);
+        return new CustomerDetailsDTO(stats.getName(), stats.getTotalOrders(), orders);
     }
 
     @CacheEvict(cacheNames = "customers", allEntries = true)

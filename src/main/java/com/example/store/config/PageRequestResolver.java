@@ -17,9 +17,13 @@ public class PageRequestResolver {
     private final PagingProperties pagingProperties;
 
     public Pageable resolve(Integer page, Integer size) {
+        return resolve(page, size, Sort.by("id"));
+    }
+
+    public Pageable resolve(Integer page, Integer size, Sort sort) {
         final int resolvedPage = (page == null || page < 0) ? 0 : page;
         final int requestedSize = (size == null || size < 1) ? pagingProperties.defaultSize() : size;
         final int resolvedSize = Math.min(requestedSize, pagingProperties.maxSize());
-        return PageRequest.of(resolvedPage, resolvedSize, Sort.by("id"));
+        return PageRequest.of(resolvedPage, resolvedSize, sort);
     }
 }

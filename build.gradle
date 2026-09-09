@@ -79,6 +79,7 @@ testing {
                 implementation platform('org.springframework.boot:spring-boot-dependencies:4.1.1')
                 implementation 'org.springframework.boot:spring-boot-starter-test'
                 implementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+                implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
                 implementation 'org.springframework.boot:spring-boot-restclient'
                 implementation 'org.springframework.boot:spring-boot-testcontainers'
                 implementation 'org.testcontainers:testcontainers-junit-jupiter'

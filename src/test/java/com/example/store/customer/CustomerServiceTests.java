@@ -1,5 +1,7 @@
 package com.example.store.customer;
 
+import com.example.store.order.OrderRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,10 +11,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,11 +30,14 @@ class CustomerServiceTests {
     @Mock
     private CustomerMapper customerMapper;
 
+    @Mock
+    private OrderRepository orderRepository;
+
     private CustomerService customerService;
 
     @BeforeEach
     void setUp() {
-        customerService = new CustomerService(customerRepository, customerMapper);
+        customerService = new CustomerService(customerRepository, customerMapper, orderRepository);
     }
 
     @Test
@@ -89,6 +98,41 @@ class CustomerServiceTests {
         final Page<CustomerDTO> result = customerService.getAllCustomers("john", pageable);
 
         assertThat(result.getContent()).containsExactly(customerDTO);
+    }
+
+    @Test
+    void getCustomerDetails_returnsNameTotalAndOrderPage_whenCustomerFound() {
+        final Pageable pageable = PageRequest.of(0, 20);
+        final CustomerRepository.CustomerOrderStats stats = new CustomerRepository.CustomerOrderStats() {
+            @Override
+            public String getName() {
+                return "John Doe";
+            }
+
+            @Override
+            public long getTotalOrders() {
+                return 42L;
+            }
+        };
+        final CustomerOrderDTO orderDTO = new CustomerOrderDTO(1L, "Chair");
+
+        when(customerRepository.findOrderStatsByCustomerId(1L)).thenReturn(Optional.of(stats));
+        when(orderRepository.findCustomerOrderDTOByCustomerId(1L, pageable)).thenReturn(List.of(orderDTO));
+
+        final CustomerDetailsDTO result = customerService.getCustomerDetails(1L, pageable);
+
+        assertThat(result).isEqualTo(new CustomerDetailsDTO("John Doe", 42L, List.of(orderDTO)));
+    }
+
+    @Test
+    void getCustomerDetails_throwsNotFound_whenCustomerMissing() {
+        final Pageable pageable = PageRequest.of(0, 20);
+
+        when(customerRepository.findOrderStatsByCustomerId(404L)).thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(ResponseStatusException.class)
+                .isThrownBy(() -> customerService.getCustomerDetails(404L, pageable))
+                .satisfies(exception -> assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND));
     }
 
     @Test

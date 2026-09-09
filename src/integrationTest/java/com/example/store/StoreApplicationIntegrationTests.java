@@ -1,9 +1,14 @@
 package com.example.store;
 
 import com.example.store.customer.CustomerDTO;
+import com.example.store.customer.CustomerDetailsDTO;
 import com.example.store.order.OrderDTO;
 import com.example.store.status.StatusResponse;
 
+import jakarta.persistence.EntityManagerFactory;
+
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
@@ -12,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -21,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestRestTemplate
+@TestPropertySource(properties = "spring.jpa.properties.hibernate.generate_statistics=true")
 class StoreApplicationIntegrationTests {
 
     @Container
@@ -29,6 +36,9 @@ class StoreApplicationIntegrationTests {
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
 
     @Test
     void getAllCustomers_returnsCustomersSeededByLiquibase() {
@@ -133,6 +143,57 @@ class StoreApplicationIntegrationTests {
         assertThat(response.getBody()).isNotNull().hasSize(5);
         assertThat(response.getHeaders().getFirst("X-Total-Count")).isNotNull();
         assertThat(response.getHeaders().getFirst("X-Total-Pages")).isNotNull();
+    }
+
+    @Test
+    void getCustomerDetails_returnsNameTotalOrdersAndOrderPage_whenFound() {
+        final ResponseEntity<CustomerDetailsDTO> response =
+                restTemplate.getForEntity("/customer/1/details?page=0&pageSize=5", CustomerDetailsDTO.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().name()).isNotBlank();
+        assertThat(response.getBody().totalOrders()).isGreaterThan(5);
+        assertThat(response.getBody().orders()).hasSize(5);
+    }
+
+    @Test
+    void getCustomerDetails_sortsOrdersByDescriptionDescending_whenSortRequested() {
+        final ResponseEntity<CustomerDetailsDTO> response = restTemplate.getForEntity(
+                "/customer/1/details?page=0&pageSize=10&sort=description,desc", CustomerDetailsDTO.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().orders())
+                .isSortedAccordingTo((left, right) -> right.description().compareTo(left.description()));
+    }
+
+    @Test
+    void getCustomerDetails_returnsBadRequest_whenSortFieldUnsupported() {
+        final ResponseEntity<String> response =
+                restTemplate.getForEntity("/customer/1/details?sort=unknownField,asc", String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void getCustomerDetails_returnsNotFound_whenCustomerMissing() {
+        final ResponseEntity<String> response = restTemplate.getForEntity("/customer/999999/details", String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void getCustomerDetails_executesAtMostTwoQueries() {
+        final Statistics statistics =
+                entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        statistics.clear();
+
+        final ResponseEntity<CustomerDetailsDTO> response =
+                restTemplate.getForEntity("/customer/1/details?page=0&pageSize=5", CustomerDetailsDTO.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(statistics.getPrepareStatementCount()).isLessThanOrEqualTo(2);
     }
 
     @Test
